@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xaroi</title>
+    <link rel="icon" href="https://i.postimg.cc/QFFBDHSq/image.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos gerais para a página */
+        #checkoutContents {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .checkout-box {
+            width: 250px;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .code-font {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.875rem;
+        }
+        .escondido {
+            display: none
+        }
+        .checkout-container {
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .checkout-title {
+            font-family: 'Arial Black', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .bg-light-gray {
+            background-color: #f7f7f7;
+        }
+        .input-container {
+            position: relative;
+            width: 100%;
+        }
+        .input-container input {
+            width: 100%;
+            padding-right: 2.5rem;
+        }
+        .input-container .fa-search {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+
+        /* Contêiner que aplica a perspectiva 3D */
+        .button-wrapper {
+    display: inline-block;
+    perspective: 1000px; /* Maior profundidade para um efeito mais realista */
+}
+
+/* Estilização do botão */
+#pasteOrdersButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background-color: #7d0a94;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+    transform-style: preserve-3d;
+}
+
+
+        
+
+        /* Efeito de hover */
+        #pasteOrdersButton:hover {
+        background-color: #e94ad4;
+    }
+
+        /* Efeito de pressionamento */
+        #pasteOrdersButton:active {
+        transform: scale(0.95);
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    #tickerInput {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, backgroud-color 0.3s ease-in-out;
+}
+
+#tickerInput:hover {
+    transform: scale(1.02);
+    background-color: #f0f0f0;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+::selection {
+    background-color: #6a0dad; /* Cor roxa */
+    color: white; /* Cor do texto, se desejar alterar também */
+}
+
+
+    </style>
+    <script>
+        let allCheckoutData = {}; // Armazenará os dados originais de todos os checkouts
+
+        function fetchData() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+
+                    // Atualiza contadores
+                    document.getElementById('hospCount').innerText = data.hosp_count;
+                    document.getElementById('farmaCount').innerText = data.farma_count;
+                    document.getElementById('totalValue').innerText = data.total_value;
+
+                    // Armazena os dados de checkout
+                    allCheckoutData = data.checkout_contents;
+
+                    // Exibe conteúdo dos checkouts
+                    for (let i = 1; i <= 5; i++) {
+                        const checkoutDiv = document.getElementById(`checkout${i}`);
+                        checkoutDiv.innerHTML = allCheckoutData[`Checkout ${i}`] || '';
+                    }
+                })
+                .catch(error => console.error('Erro:', error));
+        }
+
+        function searchCheckout(checkoutNumber) {
+            const searchQuery = document.getElementById(`searchInput${checkoutNumber}`).value.toLowerCase();
+            const checkoutDiv = document.getElementById(`checkout${checkoutNumber}`);
+            const originalData = allCheckoutData[`Checkout ${checkoutNumber}`].split('<br>').filter(line => line);
+            const filteredData = originalData.filter(line => line.toLowerCase().includes(searchQuery));
+
+            checkoutDiv.innerHTML = filteredData.join('<br>');
+        }
+
+        function updateTicker() {
+            const tickerText = document.getElementById('tickerInput').value;
+            localStorage.setItem('tickerText', tickerText);
+        }
+
+        // Atualiza a cada 5 segundos
+        setInterval(() => fetchData(), 5000);
+        window.onload = () => fetchData(); // Inicializa com os dados ao carregar a página
+
+    </script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="container mx-auto">
+        
+        <p class="text-5xl font-semibold mb-2">Valor Total: <span id="totalValue">0</span></p>
+        <p class="text-lg font-semibold mb-1">Total de HOSP: <span id="hospCount">0</span></p>
+        
+        <p class="text-lg font-semibold mb-4">Quantidade de FARMA: <span id="farmaCount">0</span></p>
+        <div class="input-container mt-4">
+            <h2 class="text-2xl font-bold mt-6">Atualizar Pedidos</h2>
+            <button id="pasteOrdersButton" class="p-2 border rounded-lg input-shadow bg-indigo-500 hover:bg-purple-500 text-white" style="width: 150px; height: 50px;">
+                Colar Pedidos
+            </button>
+        </div>
+
+        <h2 class="text-2xl font-bold mt-6">Conteúdo dos Checkouts:</h2>
+        
+        <div id="checkoutContents" class="flex flex-wrap gap-6 mt-4">
+            <!-- Checkouts 1 a 5 -->
+            <div class="checkout-container flex flex-col items-center">
+                <h3 class="checkout-title text-xl font-semibold mb-2">Check out 1</h3>
+                <div id="checkout1" class="checkout-box bg-light-gray shadow-lg p-4 rounded-lg code-font">39278127 - 2024-11-01</div>
+                <div class="input-container mt-2">
+                    <input type="text" id="searchInput1" placeholder="Pesquisar remessa..." oninput="searchCheckout(1)" class="p-2 border rounded-lg input-shadow" />
+                    <i class="fa fa-search"></i>
+                </div>
+            </div>
+            <div class="checkout-container flex flex-col items-center">
+                <h3 class="checkout-title text-xl font-semibold mb-2">Check out 2</h3>
+                <div id="checkout2" class="checkout-box bg-light-gray shadow-lg p-4 rounded-lg code-font">39278127 - 2024-11-01</div>
+                <div class="input-container mt-2">
+                    <input type="text" id="searchInput2" placeholder="Pesquisar remessa..." oninput="searchCheckout(2)" class="p-2 border rounded-lg input-shadow" />
+                    <i class="fa fa-search"></i>
+                </div>
+            </div>
+            <div class="checkout-container flex flex-col items-center">
+                <h3 class="checkout-title text-xl font-semibold mb-2">Check out 3</h3>
+                <div id="checkout3" class="checkout-box bg-light-gray shadow-lg p-4 rounded-lg code-font">39278127 - 2024-11-01</div>
+                <div class="input-container mt-2">
+                    <input type="text" id="searchInput3" placeholder="Pesquisar remessa..." oninput="searchCheckout(3)" class="p-2 border rounded-lg input-shadow" />
+                    <i class="fa fa-search"></i>
+                </div>
+            </div>
+            <div class="checkout-container flex flex-col items-center">
+                <h3 class="checkout-title text-xl font-semibold mb-2">Check out 4</h3>
+                <div id="checkout4" class="checkout-box bg-light-gray shadow-lg p-4 rounded-lg code-font">39278127 - 2024-11-01</div>
+                <div class="input-container mt-2">
+                    <input type="text" id="searchInput4" placeholder="Pesquisar remessa..." oninput="searchCheckout(4)" class="p-2 border rounded-lg input-shadow" />
+                    <i class="fa fa-search"></i>
+                </div>
+                
+            </div>
+            <div class="checkout-container flex flex-col items-center">
+                <h3 class="checkout-title text-xl font-semibold mb-2">Check out 5</h3>
+                <div id="checkout5" class="checkout-box bg-light-gray shadow-lg p-4 rounded-lg code-font">39278127 - 2024-11-01</div>
+                <div class="input-container mt-2">
+                    <input type="text" id="searchInput5" placeholder="Pesquisar remessa..." oninput="searchCheckout(5)" class="p-2 border rounded-lg input-shadow" />
+                    <i class="fa fa-search"></i>
+                </div>
+            </div>
+            <div class="checkout-container flex flex-col items-center">
+                <h3 class="checkout-title text-xl font-semibold mb-2">Check out 6</h3>
+                <div id="checkout5" class="checkout-box bg-light-gray shadow-lg p-4 rounded-lg code-font">39278127 - 2024-11-01</div>
+                <div class="input-container mt-2">
+                    <input type="text" id="searchInput5" placeholder="Pesquisar remessa..." oninput="searchCheckout(6)" class="p-2 border rounded-lg input-shadow" />
+                    <i class="fa fa-search"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container mt-4">
+            <h2 class="text-2xl font-bold mt-6">Texto do letreiro</h2>
+            
+            <input type="text" id="tickerInput" placeholder="Digite o texto..." oninput="updateTicker()" class="p-2 border rounded-lg input-shadow" />
+        </div>
+
+        
+    </div>
+    <div class="input-container mt-4">
+        <h2 class="escondido">Texto copiado da área de transferência</h2>
+        <input type="text" id="copiedTextField" readonly class="escondido"/>
+    </div>
+</body>
+    <script>
+        document.getElementById('pasteOrdersButton').addEventListener('click', async function() {
+    try {
+        // Captura o conteúdo da área de transferência
+        const clipboardText = await navigator.clipboard.readText();
+        
+        // Verifique se o conteúdo foi capturado
+        if (!clipboardText) {
+            alert('Nenhum texto foi copiado!');
+            return;
+        }
+
+        // Atualiza o campo de texto com o conteúdo copiado
+        document.getElementById('copiedTextField').value = clipboardText;
+
+        // Exibe o conteúdo copiado no console
+        console.log('Conteúdo copiado:', clipboardText);
+
+        // Envia o conteúdo para o servidor Flask (se necessário)
+        const response = await fetch('/update_pedidos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ pedidos: clipboardText }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            console.log('pedidos atualizados com sucesso');
+        } else {
+            alert('Erro ao atualizar pedidos');
+        }
+    } catch (err) {
+        console.error('Erro ao capturar a área de transferência:', err);
+        alert('Falha ao capturar o conteúdo da área de transferência');
+    }
+});
+
+const button = document.getElementById("pasteOrdersButton");
+
+button.addEventListener("mouseenter", () => {
+    button.style.transform = "scale(1.15)"; 
+    button.style.boxShadow = "0px 15px 30px rgba(0, 0, 0, 0.3)";
+});
+
+button.addEventListener("mousemove", (event) => {
+    const rect = button.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Define a posição do gradiente com base no cursor
+    button.style.background = `radial-gradient(circle at ${x}px ${y}px, 
+        rgba(80, 0, 100, 0.8), 
+        #7d0a94 20%, 
+        #e94ad4 180%)`;
+
+    // Mantém o efeito 3D
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const depthX = (x - centerX) / 5;
+    const depthY = (centerY - y) / 5;
+
+    button.style.transform = `scale(1.15) rotateX(${depthY}deg) rotateY(${depthX}deg)`;
+});
+
+button.addEventListener("mouseleave", () => {
+    button.style.transform = "scale(1) rotateX(0deg) rotateY(0deg)";
+    button.style.boxShadow = "0px 6px 12px rgba(0, 0, 0, 0.2)";
+    button.style.background = "#7d0a94"; // Volta para a cor original
+});
+
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        document.title = "Lembre de colar os pedidos!"; // Quando sai da página
+    } else {
+        document.title = "xaroi"; // Quando volta para a página
+    }
+});
+    </script>
+</html>

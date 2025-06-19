@@ -1,0 +1,113 @@
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letreiro de Pedidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Arial+Black&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+            padding-top: 20px;
+        }
+        .counter {
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-left: 20px;
+        }
+        .number {
+            font-size: 6rem;
+            color: #2c3e50;
+            margin: 0;
+            line-height: 1;
+        }
+        .counter div {
+            margin-bottom: 2px;
+        }
+        .ticker {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #ff0000;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            font-size: 75px;
+            font-family: 'Arial Black', sans-serif;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .ticker div {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 10s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="counter">
+        <h1 class="text-4xl font-extrabold" style="font-family: 'Arial Black', sans-serif;">TOTAL DE PEDIDOS EM TELA</h1>
+        <div>
+            <div class="number" id="totalValue" style="font-size: 15rem; color: #4b0082;">0</div>
+        </div>
+        <div>
+            <div><h1 class="text-3xl font-bold">PEDIDOS FARMA</h1></div>
+            <div class="number" id="farmaCount" style="color: #4b0082;">0</div>
+        </div>
+        <div>
+            <div><h1 class="text-3xl font-bold">PEDIDOS HOSP</h1></div>
+            <div class="number" id="hospCount" style="color: #4b0082;">0</div>
+        </div>
+    </div>
+
+    <div class="ticker">
+        <div id="tickerDisplay">Nenhuma mensagem</div>
+    </div>
+
+    <script>
+        function fetchData() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+
+                    document.getElementById('totalValue').innerText = data.total_value;
+                    document.getElementById('hospCount').innerText = data.hosp_count;
+                    document.getElementById('farmaCount').innerText = data.farma_count;
+                })
+                .catch(error => console.error('Erro:', error));
+        }
+
+        function updateTickerDisplay() {
+            const tickerText = localStorage.getItem('tickerText') || 'Nenhuma mensagem';
+            document.getElementById('tickerDisplay').innerText = tickerText;
+        }
+
+        setInterval(fetchData, 5000);
+        setInterval(updateTickerDisplay, 1000);
+        window.onload = () => {
+            fetchData();
+            updateTickerDisplay();
+        };
+    </script>
+</body>
+</html>

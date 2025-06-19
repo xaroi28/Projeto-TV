@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log de Classificação</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        h2 { margin-top: 40px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 40px; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Log de Remessas Classificadas</h1>
+
+    <h2>Hospitais</h2>
+    <table>
+        <tr><th>Remessa</th><th>Cliente</th></tr>
+        {% for item in hosp_remessas %}
+            <tr><td>{{ item.remessa }}</td><td>{{ item.cliente }}</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>Farma</h2>
+    <table>
+        <tr><th>Remessa</th><th>Cliente</th></tr>
+        {% for item in farma_remessas %}
+            <tr><td>{{ item.remessa }}</td><td>{{ item.cliente }}</td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
